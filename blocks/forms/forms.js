@@ -4,13 +4,13 @@ export default function decorate(block) {
     console.log(block);
     const element = document.createElement('div');
     element.innerHTML = `
-    <script charset="utf-8" type="text/javascript" src="//js.hsforms.net/forms/embed/v2.js"></script>
-    <script>
-    hbspt.forms.create({
-        region: "na1",
-        portalId: "1769030",
-        formId: "828820d8-9902-4b4e-8ff4-169076195288"
-    });
+    <script async charset="utf-8" type="text/javascript" src="https://js.hsforms.net/forms/embed/v2.js"></script>
+    <script async>
+        hbspt.forms.create({
+            region: "na1",
+            portalId: "1769030",
+            formId: "828820d8-9902-4b4e-8ff4-169076195288"
+        });
     </script>`;
     block.append(element);
     // const ul = document.createElement('ul');
