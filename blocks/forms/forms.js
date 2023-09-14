@@ -2,7 +2,7 @@ import { createOptimizedPicture } from '../../scripts/lib-franklin.js';
 
 export default function decorate(block) {
     console.log(block);
-    const element = createElement('div');
+    const element = document.createElement('div');
     element.innerHTML = `
     <script charset="utf-8" type="text/javascript" src="//js.hsforms.net/forms/embed/v2.js"></script>
     <script>
@@ -12,6 +12,7 @@ export default function decorate(block) {
         formId: "828820d8-9902-4b4e-8ff4-169076195288"
     });
     </script>`;
+    block.append(element);
     // const ul = document.createElement('ul');
     // [...block.children].forEach((row) => {
     //     const li = document.createElement('li');
