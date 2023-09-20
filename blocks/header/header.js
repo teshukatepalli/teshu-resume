@@ -172,7 +172,7 @@ export default async function decorate(block) {
       const searchTerm = this.value.toLowerCase(); // Get the lowercase search term
     
       // Fetch the JSON data from the URL
-      fetch('http://localhost:3000/query-index.json')
+      fetch('https://main--adobe-franklin--teshukatepalli.hlx.live/query-index.json')
         .then(response => response.json())
         .then(jsonData => {
           // Perform a search based on the fetched JSON data
