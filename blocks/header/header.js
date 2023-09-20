@@ -85,6 +85,28 @@ function toggleMenu(nav, navSections, forceExpanded = null) {
   }
 }
 
+function createSearchResultsBlock(results) {
+  const searchResultsBlock = document.createElement('div');
+  searchResultsBlock.classList.add('search-results'); // You can customize the class name
+
+  // Loop through the search results and create elements for each result
+  results.forEach(result => {
+    const resultElement = document.createElement('div');
+    resultElement.classList.add('search-result'); // You can customize the class name
+
+    // Customize the content based on your search result data
+    resultElement.innerHTML = `
+    <img src="${result.image}" alt="${result.title}">
+      <a href="${result.path}">${result.description}</a>
+    `;
+
+    // Append the result element to the search results block
+    searchResultsBlock.appendChild(resultElement);
+  });
+
+  return searchResultsBlock;
+}
+
 /**
  * decorates the header, mainly the nav
  * @param {Element} block The header block element
@@ -141,5 +163,47 @@ export default async function decorate(block) {
     navWrapper.className = 'nav-wrapper';
     navWrapper.append(nav);
     block.append(navWrapper);
+    const inputElement = document.createElement('input');
+    inputElement.setAttribute('type', 'text');
+    inputElement.setAttribute('placeholder', 'Search');
+    
+    // Add an 'onchange' event handler to the input element
+    inputElement.addEventListener('change', function () {
+      const searchTerm = this.value.toLowerCase(); // Get the lowercase search term
+    
+      // Fetch the JSON data from the URL
+      fetch('http://localhost:3000/query-index.json')
+        .then(response => response.json())
+        .then(jsonData => {
+          // Perform a search based on the fetched JSON data
+          const results = jsonData.data.filter(item => {
+            // Customize this condition to match your search criteria
+            return item.description.toLowerCase().includes(searchTerm);
+          });
+          console.log(results);
+          const resultBlock = document.querySelector('.search-results'); // Use .search-results for class selector
+          resultBlock ? resultBlock.remove() : null;
+          if (results.length > 0 && searchTerm != '') {
+            // Create a block based on the search results
+            const searchResultsBlock = createSearchResultsBlock(results);
+          
+            // Use a more specific selector for your header
+            const header = document.querySelector('.header'); // Adjust this selector as needed
+            header.appendChild(searchResultsBlock);
+          }
+    
+          // Get the header element and append the search results block to it
+        })
+        .catch(error => {
+          console.error("Error fetching JSON data:", error);
+        });
+    });
+    
+    
+    // Append the input element to the .nav-tools container
+    const navToolsContainer = document.querySelector('.nav-tools');
+    navToolsContainer.appendChild(inputElement);
+    
+    
   }
 }

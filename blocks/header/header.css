@@ -6,6 +6,10 @@ header .nav-wrapper {
   position: fixed;
 }
 
+/* .header-wrapper {
+  position: absolute;
+} */
+
 header nav {
   box-sizing: border-box;
   display: grid;
@@ -272,4 +276,40 @@ header nav .nav-sections ul > li > ul > li {
 /* tools */
 header nav .nav-tools {
   grid-area: tools;
+  display: flex;
+  flex-direction: row-reverse;
+  padding: 5px;
+  border: 1px solid #000;
+  border-radius: 5px;
+}
+header nav .nav-tools input {
+  outline: none;
+  border: none;
+  text-decoration: none;
+  font-size: 16px;
+}
+
+.search-results {
+  position: absolute;
+  top: 65px;
+  left: 0;
+  right: 0;
+  background-color: #fff;
+  z-index: 10;
+  display: flex;
+  padding: 10px 50px;
+}
+.search-result {
+  display: flex;
+  padding: 5px;
+  box-shadow: 0px 0px 10px #ededed;
+  /* border-radius: 5px; */
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  margin: 5px;
+}
+.search-result img {
+  height: 100px;
+  width: auto;
 }

@@ -1,29 +1,33 @@
 import { createOptimizedPicture } from '../../scripts/lib-franklin.js';
 
+
 export default function decorate(block) {
+
+    function loadHubSpotFormScript() {
+    var script = document.createElement('script');
+    script.type = 'text/javascript';
+    script.src = '//js.hsforms.net/forms/embed/v2.js';
+    script.charset = 'utf-8';
+
+    // Define a callback function to create the form after the script loads
+    script.onload = function () {
+        hbspt.forms.create({
+        region: "na1",
+        portalId: "1769030",
+        formId: "828820d8-9902-4b4e-8ff4-169076195288",
+        target: '#myFormContainer' // Specify the container where the form should be rendered
+        });
+    };
+
+    // Append the script to the document's head
+    document.head.appendChild(script);
+    }
+
+    // Call the function to load the HubSpot form script
+    loadHubSpotFormScript();
+    
     console.log(block);
     const element = document.createElement('div');
-    element.innerHTML = `
-    <script async charset="utf-8" type="text/javascript" src="https://js.hsforms.net/forms/embed/v2.js"></script>
-    <script async>
-        hbspt.forms.create({
-            region: "na1",
-            portalId: "1769030",
-            formId: "828820d8-9902-4b4e-8ff4-169076195288"
-        });
-    </script>`;
+    element.id="myFormContainer";
     block.append(element);
-    // const ul = document.createElement('ul');
-    // [...block.children].forEach((row) => {
-    //     const li = document.createElement('li');
-    //     while (row.firstElementChild) li.append(row.firstElementChild);
-    //     [...li.children].forEach((div) => {
-    //     if (div.children.length === 1 && div.querySelector('picture')) div.className = 'cards-card-image';
-    //     else div.className = 'cards-card-body';
-    //     });
-    //     ul.append(li);
-    // });
-    // ul.querySelectorAll('img').forEach((img) => img.closest('picture').replaceWith(createOptimizedPicture(img.src, img.alt, false, [{ width: '750' }])));
-    // block.textContent = '';
-    // block.append(ul);
 }
