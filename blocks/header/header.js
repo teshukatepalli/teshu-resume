@@ -178,7 +178,7 @@ export default async function decorate(block) {
           // Perform a search based on the fetched JSON data
           const results = jsonData.data.filter(item => {
             // Customize this condition to match your search criteria
-            return item.description.toLowerCase().includes(searchTerm);
+            return item.title.toLowerCase().includes(searchTerm);
           });
           console.log(results);
           const resultBlock = document.querySelector('.search-results'); // Use .search-results for class selector
