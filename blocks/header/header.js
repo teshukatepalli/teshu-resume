@@ -3,6 +3,8 @@ import { getMetadata, decorateIcons } from '../../scripts/lib-franklin.js';
 // media query match that indicates mobile/tablet width
 const isDesktop = window.matchMedia('(min-width: 900px)');
 
+const domain = window.location.hostname
+
 function closeOnEscape(e) {
   if (e.code === 'Escape') {
     const nav = document.getElementById('nav');
@@ -172,13 +174,13 @@ export default async function decorate(block) {
       const searchTerm = this.value.toLowerCase(); // Get the lowercase search term
     
       // Fetch the JSON data from the URL
-      fetch('http://localhost:3000/query-index.json')
+      fetch(`${domain}/query-index.json`)
         .then(response => response.json())
         .then(jsonData => {
           // Perform a search based on the fetched JSON data
           const results = jsonData.data.filter(item => {
             // Customize this condition to match your search criteria
-            return item.description.toLowerCase().includes(searchTerm);
+            return item.title.toLowerCase().includes(searchTerm);
           });
           console.log(results);
           const resultBlock = document.querySelector('.search-results'); // Use .search-results for class selector
