@@ -12,6 +12,9 @@ import {
   loadBlocks,
   loadCSS,
 } from './lib-franklin.js';
+import {
+  a, div, domEl, p,
+} from './dom-helpers.js';
 
 const LCP_BLOCKS = []; // add your LCP blocks to the list
 
@@ -130,6 +133,51 @@ async function loadPage() {
   await loadEager(document);
   await loadLazy(document);
   loadDelayed();
+}
+
+export async function processEmbedFragment(element) {
+  const block = div({ class: 'embed-fragment' });
+  [...element.classList].forEach((className) => { block.classList.add(className); });
+  let found = false;
+  const link = element.querySelector('a');
+  if (link) {
+    const linkUrl = new URL(link.href);
+    let linkTextUrl;
+    try {
+      linkTextUrl = new URL(link.textContent);
+    } catch {
+      // not a url, ignore
+    }
+    if (linkTextUrl && linkTextUrl.pathname === linkUrl.pathname) {
+      const fragmentDomains = ['localhost', 'moleculardevices.com', 'moleculardevices--hlxsites.hlx.page', 'moleculardevices--hlxsites.hlx.live'];
+      found = fragmentDomains.find((domain) => linkUrl.hostname.endsWith(domain));
+      if (found) {
+        block.classList.remove('button-container');
+        const fragment = await fetchFragment(linkUrl);
+        block.innerHTML = fragment;
+        const sections = block.querySelectorAll('.embed-fragment > div');
+        [...sections].forEach((section) => {
+          section.classList.add('section');
+        });
+        decorateEmbeddedBlocks(block);
+        decorateSections(block);
+        loadBlocks(block);
+      }
+    }
+  }
+
+  if (!found) {
+    const elementInner = element.innerHTML;
+    block.append(div({ class: 'section' }));
+    block.querySelector('.section').innerHTML = elementInner;
+  }
+
+  decorateButtons(block);
+  decorateIcons(block);
+  decorateLinks(block);
+  decorateParagraphs(block);
+
+  return block;
 }
 
 loadPage();
