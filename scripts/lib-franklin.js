@@ -334,6 +334,8 @@ export function readBlockConfig(block) {
  * @param {Element} main The container element
  */
 export function decorateSections(main) {
+  const imageMediaQuery = window.matchMedia('only screen and (min-width: 400px)');
+  
   main.querySelectorAll(':scope > div').forEach((section) => {
     const wrappers = [];
     let defaultContent = false;
