@@ -334,6 +334,7 @@ export function readBlockConfig(block) {
  * @param {Element} main The container element
  */
 export function decorateSections(main) {
+  const imageMediaQuery = window.matchMedia('only screen and (min-width: 400px)');
   main.querySelectorAll(':scope > div').forEach((section) => {
     const wrappers = [];
     let defaultContent = false;
@@ -359,6 +360,26 @@ export function decorateSections(main) {
         if (key === 'style') {
           const styles = meta.style.split(',').map((style) => toClassName(style.trim()));
           styles.forEach((style) => section.classList.add(style));
+        } else if (key === 'background') {
+          const { background } = meta;
+          if (background.startsWith('http')) {
+            const url = new URL(background, window.location.href);
+            const { pathname } = url;
+            const backgroundImages = [];
+            const exts = ['webply', pathname.substring(pathname.lastIndexOf('.') + 1)];
+            if (imageMediaQuery.matches) {
+              exts.forEach((ext) => backgroundImages.push(`url(${pathname}?width=2000&format=${ext}&optimize=medium)`));
+            } else {
+              exts.forEach((ext) => backgroundImages.push(`url(${pathname}?width=750&format=${ext}&optimize=medium)`));
+            }
+            section.style.backgroundImage = backgroundImages.join(', ');
+          } else {
+            section.style.background = background;
+          }
+        } else if (key === 'name') {
+          // section.id = toClassName(meta[key]);
+          section.dataset[toCamelCase(key)] = toClassName(meta[key]);
+          section.title = meta[key];
         } else {
           section.dataset[toCamelCase(key)] = meta[key];
         }
@@ -438,7 +459,7 @@ export function buildBlock(blockName, content) {
  * @param {Element} block The block element
  * @returns {Object} The block config (blockName, cssPath and jsPath)
  */
-function getBlockConfig(block) {
+/* function getBlockConfig(block) {
   const { blockName } = block.dataset;
   const cssPath = `${window.hlx.codeBasePath}/blocks/${blockName}/${blockName}.css`;
   const jsPath = `${window.hlx.codeBasePath}/blocks/${blockName}/${blockName}.js`;
@@ -449,23 +470,25 @@ function getBlockConfig(block) {
       (config, fn) => fn(config, original),
       { blockName, cssPath, jsPath },
     );
-}
+}*/
 
 /**
  * Loads JS and CSS for a block.
  * @param {Element} block The block element
  */
 export async function loadBlock(block) {
-  const status = block.dataset.blockStatus;
+  const status = block.getAttribute('data-block-status');
   if (status !== 'loading' && status !== 'loaded') {
-    block.dataset.blockStatus = 'loading';
-    const { blockName, cssPath, jsPath } = getBlockConfig(block);
+    block.setAttribute('data-block-status', 'loading');
+    const blockName = block.getAttribute('data-block-name');
     try {
-      const cssLoaded = loadCSS(cssPath);
+      const cssLoaded = new Promise((resolve) => {
+        loadCSS(`${window.hlx.codeBasePath}/blocks/${blockName}/${blockName}.css`, resolve);
+      });
       const decorationComplete = new Promise((resolve) => {
         (async () => {
           try {
-            const mod = await import(jsPath);
+            const mod = await import(`../blocks/${blockName}/${blockName}.js`);
             if (mod.default) {
               await mod.default(block);
             }
@@ -481,10 +504,9 @@ export async function loadBlock(block) {
       // eslint-disable-next-line no-console
       console.log(`failed to load block ${blockName}`, error);
     }
-    block.dataset.blockStatus = 'loaded';
+    block.setAttribute('data-block-status', 'loaded');
   }
 }
-
 /**
  * Loads JS and CSS for all blocks in a container element.
  * @param {Element} main The container element
@@ -588,6 +610,7 @@ export function decorateTemplateAndTheme() {
  * Decorates paragraphs containing a single link as buttons.
  * @param {Element} element container element
  */
+
 export function decorateButtons(element) {
   element.querySelectorAll('a').forEach((a) => {
     a.title = a.title || a.textContent;
@@ -596,13 +619,15 @@ export function decorateButtons(element) {
       const twoup = a.parentElement.parentElement;
       if (!a.querySelector('img')) {
         if (up.childNodes.length === 1 && (up.tagName === 'P' || up.tagName === 'DIV')) {
-          a.className = 'button primary'; // default
           up.classList.add('button-container');
         }
         if (up.childNodes.length === 1 && up.tagName === 'STRONG'
           && twoup.childNodes.length === 1 && twoup.tagName === 'P') {
           a.className = 'button primary';
           twoup.classList.add('button-container');
+          const btnBorder = document.createElement('span');
+          btnBorder.className = 'button-border';
+          a.append(btnBorder);
         }
         if (up.childNodes.length === 1 && up.tagName === 'EM'
           && twoup.childNodes.length === 1 && twoup.tagName === 'P') {
@@ -613,7 +638,6 @@ export function decorateButtons(element) {
     }
   });
 }
-
 /**
  * Load LCP block and/or wait for LCP in default content.
  */

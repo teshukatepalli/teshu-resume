@@ -1,7 +1,5 @@
 import {
   sampleRUM,
-  buildBlock,
-  loadHeader,
   loadFooter,
   decorateButtons,
   decorateIcons,
@@ -10,13 +8,61 @@ import {
   decorateTemplateAndTheme,
   waitForLCP,
   loadBlocks,
+  getMetadata,
   loadCSS,
+  loadHeader,
+  decorateBlock,
+  buildBlock,
 } from './lib-franklin.js';
 import {
-  a, div, p,
+  a, div, domEl, p,
 } from './dom-helpers.js';
 
 const LCP_BLOCKS = []; // add your LCP blocks to the list
+
+export function loadScript(url, callback, type, async, forceReload) {
+  let script = document.querySelector(`head > script[src="${url}"]`);
+  if (forceReload && script) {
+    script.remove();
+    script = null;
+  }
+
+  if (!script) {
+    const head = document.querySelector('head');
+    script = document.createElement('script');
+    script.src = url;
+    if (async) {
+      script.async = true;
+    }
+    if (type) {
+      script.setAttribute('type', type);
+    }
+    script.onload = callback;
+    head.append(script);
+  } else if (typeof callback === 'function') {
+    callback('noop');
+  }
+
+  return script;
+}
+
+/**
+ * Summarises the description to maximum character count without cutting words.
+ * @param {string} description Description to be summarised
+ * @param {number} charCount Max character count
+ * @returns summarised string
+ */
+export function summariseDescription(description, charCount) {
+  let result = description;
+  if (result.length > charCount) {
+    result = result.substring(0, charCount);
+    const lastSpaceIndex = result.lastIndexOf(' ');
+    if (lastSpaceIndex !== -1) {
+      result = result.substring(0, lastSpaceIndex);
+    }
+  }
+  return `${result}…`;
+}
 
 /**
  * Builds hero block and prepends to main in a new section.
@@ -31,6 +77,148 @@ function buildHeroBlock(main) {
     section.append(buildBlock('hero', { elems: [picture, h1] }));
     main.prepend(section);
   }
+}
+
+/**
+ * Decorate blocks in an embed fragment.
+ */
+function decorateEmbeddedBlocks(container) {
+  container
+    .querySelectorAll('div.section > div')
+    .forEach(decorateBlock);
+}
+
+/**
+ * Parse video links and build the markup
+ */
+export function isVideo(url) {
+  let isV = false;
+  const hostnames = ['youtube.com', 'vimeo.com'];
+  [...hostnames].forEach((hostname) => {
+    if (url.hostname.includes(hostname)) {
+      isV = true;
+    }
+  });
+  return isV;
+}
+
+export function embedVideo(link, url, type) {
+  const videoId = url.pathname.substring(url.pathname.lastIndexOf('/') + 1).replace('.html', '');
+  const observer = new IntersectionObserver((entries) => {
+    if (entries.some((e) => e.isIntersecting)) {
+      observer.disconnect();
+      loadScript('https://play.vidyard.com/embed/v4.js', null, null, null, true);
+      link.parentElement.innerHTML = `<img style="width: 100%; margin: auto; display: block;"
+      class="vidyard-player-embed"
+      src="https://play.vidyard.com/${videoId}.jpg"
+      data-uuid="${videoId}"
+      data-v="4"
+      data-width="${type === 'lightbox' ? '700' : ''}"
+      data-height="${type === 'lightbox' ? '394' : ''}"
+      data-autoplay="${type === 'lightbox' ? '1' : '0'}"
+      data-type="${type === 'lightbox' ? 'lightbox' : 'inline'}"/>`;
+    }
+  });
+  observer.observe(link.parentElement);
+}
+
+export function videoButton(container, button, url) {
+  const videoId = url.pathname.split('/').at(-1).trim();
+  const overlay = div({ id: 'overlay' }, div({
+    class: 'vidyard-player-embed', 'data-uuid': videoId, 'dava-v': '4', 'data-type': 'lightbox', 'data-autoplay': '2',
+  }));
+
+  container.prepend(overlay);
+  button.addEventListener('click', (e) => {
+    e.preventDefault();
+    loadScript('https://play.vidyard.com/embed/v4.js', () => {
+      // eslint-disable-next-line no-undef
+      VidyardV4.api.getPlayersByUUID(videoId)[0].showLightbox();
+    });
+  });
+}
+
+export function decorateExternalLink(link) {
+  if (!link.href) return;
+
+  const url = new URL(link.href);
+
+  const internalLinks = [
+    'https://main--teshu-resume--teshukatepalli.hlx.page/',
+    'https://main--teshu-resume--teshukatepalli.hlx.live',
+  ];
+
+  if (url.origin === window.location.origin
+    || url.host.endsWith('aldevron.com')
+    || internalLinks.includes(url.origin)
+    || !url.protocol.startsWith('http')
+    || link.closest('.languages-dropdown')
+    || link.querySelector('.icon')) {
+    return;
+  }
+
+  const acceptedTags = ['STRONG', 'EM', 'SPAN', 'H2'];
+  const invalidChildren = Array.from(link.children)
+    .filter((child) => !acceptedTags.includes(child.tagName));
+
+  if (invalidChildren.length > 0) {
+    return;
+  }
+
+  link.setAttribute('target', '_blank');
+  link.setAttribute('rel', 'noopener noreferrer');
+
+  const heading = link.querySelector('h2');
+  const externalLinkIcon = domEl('i', { class: 'fa fa-external-link' });
+  if (!heading) {
+    link.appendChild(externalLinkIcon);
+  } else {
+    heading.appendChild(externalLinkIcon);
+  }
+}
+
+export function decorateLinks(main) {
+  main.querySelectorAll('a').forEach((link) => {
+    const url = new URL(link.href);
+    // decorate video links
+    if (isVideo(url) && !link.closest('.block.hero-advanced') && !link.closest('.block.hero')) {
+      const closestButtonContainer = link.closest('.button-container');
+      if (link.closest('.block.cards') || (closestButtonContainer && closestButtonContainer.querySelector('strong,em'))) {
+        videoButton(link.closest('div'), link, url);
+      } else {
+        const up = link.parentElement;
+        const isInlineBlock = (link.closest('.block.vidyard') && !link.closest('.block.vidyard').classList.contains('lightbox'));
+        const type = (up.tagName === 'EM' || isInlineBlock) ? 'inline' : 'lightbox';
+        const wrapper = div({ class: 'video-wrapper' }, div({ class: 'video-container' }, a({ href: link.href }, link.textContent)));
+        if (link.href !== link.textContent) wrapper.append(p({ class: 'video-title' }, link.textContent));
+        up.innerHTML = wrapper.outerHTML;
+        embedVideo(up.querySelector('a'), url, type);
+      }
+    }
+
+    // decorate RFQ page links with pid parameter
+    if (url.pathname.startsWith('/quote-request') && !url.searchParams.has('pid') && getMetadata('family-id')) {
+      url.searchParams.append('pid', getMetadata('family-id'));
+      link.href = url.toString();
+    }
+
+    if (url.pathname.endsWith('.pdf')) {
+      link.setAttribute('target', '_blank');
+      link.setAttribute('rel', 'noopener noreferrer');
+    }
+
+    // decorate external links
+    decorateExternalLink(link);
+  });
+}
+
+function decorateParagraphs(main) {
+  [...main.querySelectorAll('p > picture')].forEach((picturePar) => {
+    picturePar.parentElement.classList.add('picture');
+  });
+  [...main.querySelectorAll('ol > li > em:only-child')].forEach((captionList) => {
+    captionList.parentElement.parentElement.classList.add('text-caption');
+  });
 }
 
 /**
@@ -98,15 +286,6 @@ async function loadEager(doc) {
   }
 }
 
-/**
- * Decorate blocks in an embed fragment.
- */
-function decorateEmbeddedBlocks(container) {
-  container
-    .querySelectorAll('div.section > div')
-    .forEach(decorateBlock);
-}
-
 export async function fetchFragment(path, plain = true) {
   const response = await fetch(path + (plain ? '.plain.html' : ''));
   if (!response.ok) {
@@ -121,50 +300,6 @@ export async function fetchFragment(path, plain = true) {
     return null;
   }
   return text;
-}
-
-export function decorateLinks(main) {
-  main.querySelectorAll('a').forEach((link) => {
-    const url = new URL(link.href);
-    // decorate video links
-    if (isVideo(url) && !link.closest('.block.hero-advanced') && !link.closest('.block.hero')) {
-      const closestButtonContainer = link.closest('.button-container');
-      if (link.closest('.block.cards') || (closestButtonContainer && closestButtonContainer.querySelector('strong,em'))) {
-        videoButton(link.closest('div'), link, url);
-      } else {
-        const up = link.parentElement;
-        const isInlineBlock = (link.closest('.block.vidyard') && !link.closest('.block.vidyard').classList.contains('lightbox'));
-        const type = (up.tagName === 'EM' || isInlineBlock) ? 'inline' : 'lightbox';
-        const wrapper = div({ class: 'video-wrapper' }, div({ class: 'video-container' }, a({ href: link.href }, link.textContent)));
-        if (link.href !== link.textContent) wrapper.append(p({ class: 'video-title' }, link.textContent));
-        up.innerHTML = wrapper.outerHTML;
-        embedVideo(up.querySelector('a'), url, type);
-      }
-    }
-
-    // decorate RFQ page links with pid parameter
-    if (url.pathname.startsWith('/quote-request') && !url.searchParams.has('pid') && getMetadata('family-id')) {
-      url.searchParams.append('pid', getMetadata('family-id'));
-      link.href = url.toString();
-    }
-
-    if (url.pathname.endsWith('.pdf')) {
-      link.setAttribute('target', '_blank');
-      link.setAttribute('rel', 'noopener noreferrer');
-    }
-
-    // decorate external links
-    decorateExternalLink(link);
-  });
-}
-
-function decorateParagraphs(main) {
-  [...main.querySelectorAll('p > picture')].forEach((picturePar) => {
-    picturePar.parentElement.classList.add('picture');
-  });
-  [...main.querySelectorAll('ol > li > em:only-child')].forEach((captionList) => {
-    captionList.parentElement.parentElement.classList.add('text-caption');
-  });
 }
 
 /**
@@ -220,7 +355,7 @@ export async function processEmbedFragment(element) {
       // not a url, ignore
     }
     if (linkTextUrl && linkTextUrl.pathname === linkUrl.pathname) {
-      const fragmentDomains = ['localhost', 'moleculardevices.com', 'moleculardevices--hlxsites.hlx.page', 'moleculardevices--hlxsites.hlx.live'];
+      const fragmentDomains = ['localhost', 'teshu-resume--teshukatepalli.hlx.page', 'teshu-resume--teshukatepalli.hlx.live'];
       found = fragmentDomains.find((domain) => linkUrl.hostname.endsWith(domain));
       if (found) {
         block.classList.remove('button-container');
