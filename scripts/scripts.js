@@ -118,7 +118,7 @@ function decorateEmbeddedBlocks(container) {
  */
 export function isVideo(url) {
   let isV = false;
-  const hostnames = ['vids.moleculardevices.com', 'vidyard.com'];
+  const hostnames = ['youtube.com', 'vimeo.com'];
   [...hostnames].forEach((hostname) => {
     if (url.hostname.includes(hostname)) {
       isV = true;
@@ -169,19 +169,12 @@ export function decorateExternalLink(link) {
   const url = new URL(link.href);
 
   const internalLinks = [
-    'https://view.ceros.com',
-    'https://share.vidyard.com',
-    'https://main--moleculardevices--hlxsites.hlx.page',
-    'https://main--moleculardevices--hlxsites.hlx.live',
-    'http://molecular-devices.myshopify.com',
-    'http://moldev.com',
-    'http://go.pardot.com',
-    'http://pi.pardot.com',
-    'https://drift.me',
+    'https://main--teshu-resume--teshukatepalli.hlx.page/',
+    'https://main--teshu-resume--teshukatepalli.hlx.live',
   ];
 
   if (url.origin === window.location.origin
-    || url.host.endsWith('moleculardevices.com')
+    || url.host.endsWith('aldevron.com')
     || internalLinks.includes(url.origin)
     || !url.protocol.startsWith('http')
     || link.closest('.languages-dropdown')
@@ -392,7 +385,7 @@ export async function processEmbedFragment(element) {
       // not a url, ignore
     }
     if (linkTextUrl && linkTextUrl.pathname === linkUrl.pathname) {
-      const fragmentDomains = ['localhost', 'moleculardevices.com', 'moleculardevices--hlxsites.hlx.page', 'moleculardevices--hlxsites.hlx.live'];
+      const fragmentDomains = ['localhost', 'teshu-resume--teshukatepalli.hlx.page','teshu-resume--teshukatepalli.hlx.live'];
       found = fragmentDomains.find((domain) => linkUrl.hostname.endsWith(domain));
       if (found) {
         block.classList.remove('button-container');
