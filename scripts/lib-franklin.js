@@ -335,7 +335,6 @@ export function readBlockConfig(block) {
  */
 export function decorateSections(main) {
   const imageMediaQuery = window.matchMedia('only screen and (min-width: 400px)');
-  
   main.querySelectorAll(':scope > div').forEach((section) => {
     const wrappers = [];
     let defaultContent = false;
@@ -460,7 +459,7 @@ export function buildBlock(blockName, content) {
  * @param {Element} block The block element
  * @returns {Object} The block config (blockName, cssPath and jsPath)
  */
-function getBlockConfig(block) {
+/* function getBlockConfig(block) {
   const { blockName } = block.dataset;
   const cssPath = `${window.hlx.codeBasePath}/blocks/${blockName}/${blockName}.css`;
   const jsPath = `${window.hlx.codeBasePath}/blocks/${blockName}/${blockName}.js`;
@@ -471,7 +470,7 @@ function getBlockConfig(block) {
       (config, fn) => fn(config, original),
       { blockName, cssPath, jsPath },
     );
-}
+}*/
 
 /**
  * Loads JS and CSS for a block.

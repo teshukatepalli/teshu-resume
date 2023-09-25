@@ -8,41 +8,17 @@ import {
   decorateTemplateAndTheme,
   waitForLCP,
   loadBlocks,
-  toClassName,
   getMetadata,
   loadCSS,
-  loadBlock,
   loadHeader,
   decorateBlock,
   buildBlock,
-  readBlockConfig,
-  toCamelCase,
 } from './lib-franklin.js';
 import {
   a, div, domEl, p,
 } from './dom-helpers.js';
 
-/**
- * to add/remove a template, just add/remove it in the list below
- */
-const TEMPLATE_LIST = [
-  'application-note',
-  'news',
-  'publication',
-  'blog',
-  'event',
-  'about-us',
-  'newsroom',
-  'landing-page',
-];
-
 const LCP_BLOCKS = []; // add your LCP blocks to the list
-
-let LAST_SCROLL_POSITION = 0;
-let LAST_STACKED_HEIGHT = 0;
-let STICKY_ELEMENTS;
-let PREV_STICKY_ELEMENTS;
-const mobileDevice = window.matchMedia('(max-width: 991px)');
 
 export function loadScript(url, callback, type, async, forceReload) {
   let script = document.querySelector(`head > script[src="${url}"]`);
@@ -111,7 +87,6 @@ function decorateEmbeddedBlocks(container) {
     .querySelectorAll('div.section > div')
     .forEach(decorateBlock);
 }
-
 
 /**
  * Parse video links and build the markup
@@ -246,7 +221,6 @@ function decorateParagraphs(main) {
   });
 }
 
-
 /**
  * load fonts.css and set a session storage flag
  */
@@ -312,8 +286,6 @@ async function loadEager(doc) {
   }
 }
 
-
-
 export async function fetchFragment(path, plain = true) {
   const response = await fetch(path + (plain ? '.plain.html' : ''));
   if (!response.ok) {
@@ -329,8 +301,6 @@ export async function fetchFragment(path, plain = true) {
   }
   return text;
 }
-
-
 
 /**
  * Loads everything that doesn't need to be delayed.
@@ -385,7 +355,7 @@ export async function processEmbedFragment(element) {
       // not a url, ignore
     }
     if (linkTextUrl && linkTextUrl.pathname === linkUrl.pathname) {
-      const fragmentDomains = ['localhost', 'teshu-resume--teshukatepalli.hlx.page','teshu-resume--teshukatepalli.hlx.live'];
+      const fragmentDomains = ['localhost', 'teshu-resume--teshukatepalli.hlx.page', 'teshu-resume--teshukatepalli.hlx.live'];
       found = fragmentDomains.find((domain) => linkUrl.hostname.endsWith(domain));
       if (found) {
         block.classList.remove('button-container');

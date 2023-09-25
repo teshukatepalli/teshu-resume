@@ -5,21 +5,21 @@
 import {
   decorateIcons, loadCSS, createOptimizedPicture, fetchPlaceholders, toCamelCase,
 } from '../../scripts/lib-franklin.js';
-import { isGatedResource, summariseDescription } from '../../scripts/scripts.js';
 import {
   a, div, h3, p, i, span,
 } from '../../scripts/dom-helpers.js';
+/*import { isGatedResource, summariseDescription } from '../../scripts/scripts.js';
 import { createCompareBannerInterface } from '../../templates/compare-items/compare-banner.js';
 import {
   MAX_COMPARE_ITEMS,
   getTitleFromNode,
   getSelectedItems,
   updateCompareButtons,
-} from '../../scripts/compare-helpers.js';
+} from '../../scripts/compare-helpers.js';*/
 
 let placeholders = {};
 
-export async function handleCompareProducts(e) {F
+export async function handleCompareProducts(e) {
   const { target } = e;
   const clickedItemTitle = getTitleFromNode(target);
   const selectedItemTitles = getSelectedItems();
@@ -109,15 +109,18 @@ class Card {
       decorateIcons(c2aLinkBlock);
     }
 
-    const c2aBlock = div({ class: 'c2a' },
-      p({ class: 'button-container' },
+    const c2aBlock = div(
+      { class: 'c2a' },
+      p(
+        { class: 'button-container' },
         c2aLinkBlock,
       ),
     );
     if (
       item.specifications
       && item.specifications !== '0'
-    ) {
+    ) 
+    {
       c2aBlock.append(div({ class: 'compare-button' },
         `${placeholders.compare || 'Compare'} (`,
         span({ class: 'compare-count' }, '0'),
@@ -143,13 +146,17 @@ class Card {
     }
 
     return (
-      div({ class: 'card' },
-        this.showImageThumbnail ? div({ class: 'card-thumb' },
-          this.thumbnailLink ? a({ href: cardLink },
+      div(
+        { class: 'card' },
+        this.showImageThumbnail ? div(
+          { class: 'card-thumb' },
+          this.thumbnailLink ? a(
+            { href: cardLink },
             thumbnailBlock,
           ) : thumbnailBlock,
         ) : '',
-        item.badgeText ? div({ class: 'badge' }, item.badgeText) : '',
+        item.badgeText ? div(
+          { class: 'badge' }, item.badgeText) : '',
         div({ class: 'card-caption' },
           item.type ? div({ class: 'card-type' }, item.type) : '',
           h3(
