@@ -5,7 +5,7 @@
 on:
   create:
     branches:
-      - main
+      - develop
 jobs:
   cleanup:
     runs-on: ubuntu-latest
