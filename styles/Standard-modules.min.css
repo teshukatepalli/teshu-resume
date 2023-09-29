@@ -206,7 +206,7 @@ html[xmlns] .hs_cos_flex-slides {
   margin-right: 5px;
 }
 .hs_cos_flex-direction-nav {
-  *height: 0;
+  height: 0;
 }
 .hs_cos_flex-direction-nav a {
   width: 30px;
@@ -253,7 +253,7 @@ html[xmlns] .hs_cos_flex-slides {
   list-style: none;
 }
 .hs_cos_flex_thumbnavs-direction-nav {
-  *height: 0;
+  height: 0;
 }
 .hs_cos_flex_thumbnavs-direction-nav a {
   width: 30px;
@@ -296,7 +296,7 @@ html[xmlns] .hs_cos_flex-slides {
   margin: 0 6px;
   display: inline-block;
   zoom: 1;
-  *display: inline;
+  display: inline;
 }
 .hs_cos_flex-control-paging li a {
   width: 11px;
